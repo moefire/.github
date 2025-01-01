@@ -1,0 +1,36 @@
+name: Log @moefire organization statistics
+
+on:
+  schedule:
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+
+jobs:
+  Stats:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: gr2m/org-stats-action@v1.0.3
+        id: stats
+        with:
+          org: moefire
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: |
+          cat << EOF
+          result: ${{ steps.stats.outputs.data }}
+          EOF
+      - name: Modify README.md
+        uses: jaywcjlove/github-action-modify-file-content@v1.4.4
+        with:
+          path: profile/README.md
+          token: ${{ secrets.GITHUB_TOKEN }}
+          body: |
+            本月活跃情况: 
+            | 条目 | 活跃情况 |
+            | :-- | :--: |
+            |🐱‍open issues| ${{ fromJson(steps.stats.outputs.data).openIssues }} |
+            |💻closed issues| ${{ fromJson(steps.stats.outputs.data).closedIssues }} |
+            |💬open pull requests| ${{ fromJson(steps.stats.outputs.data).openPullRequests }} |
+            |🕑︎closed pull requests| ${{ fromJson(steps.stats.outputs.data).closedPullRequests }}|
+            |🔥merged pull requests| ${{ fromJson(steps.stats.outputs.data).mergedPullRequests }}|
+             
